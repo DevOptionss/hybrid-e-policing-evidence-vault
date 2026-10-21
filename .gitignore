@@ -1,0 +1,41 @@
+# Dependencies and build output
+node_modules/
+*.log
+
+# Local runtime data
+vault/vault_meta.json
+vault/evidence/*
+!vault/evidence/.gitkeep
+.env
+.env.*
+
+# Hyperledger Fabric material: certificates, private keys and network data must never be committed
+organizations/
+fabric-samples/
+fabric-crypto/
+channel-artifacts/
+wallet/
+keystore/
+signcerts/
+*.pem
+*.key
+*_sk
+priv_sk
+*.tar.gz
+*.block
+
+# Local IPFS repositories
+.ipfs/
+ipfs-cloud/
+.ipfs-cloud/
+
+# Personal documents that are not part of the code
+thesis/
+*.docx
+*.pptx
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Chaincode unit tests
+        working-directory: chaincode/evidence-cc
+        run: |
+          npm install
+          npm test
+
+      - name: Vault syntax check
+        working-directory: vault
+        run: |
+          for f in server.js lib/*.js tests/*.js; do node --check "$f"; done
+
+      - name: The demo copy of the chaincode must match the deployed chaincode
+        run: diff -r chaincode/evidence-cc/lib vault/lib/chaincode-copy

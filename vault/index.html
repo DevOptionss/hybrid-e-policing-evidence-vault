@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence Vault - Objective 3 demonstration</title>
+<style>
+:root{
+  --paper:#e9edf1;--sheet:#fbfcfd;--ink:#13202e;--mute:#5d6b7b;--rule:#c6cfd8;
+  --marker:#f4c20d;--marker-ink:#2b2200;--good:#0e7c61;--good-bg:#dff3ec;--bad:#bf2f2b;--bad-bg:#fbe4e2;
+  --warn-bg:#fff4cf;--hash:#0b4f8a;
+  --sans:"Bahnschrift","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"Cascadia Mono","Cascadia Code",Consolas,ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:12px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+  background-size:48px 48px;background-position:-1px -1px}
+body::before{content:"";position:fixed;inset:0;background:var(--paper);opacity:.86;z-index:-1}
+h1,h2,h3,p{margin:0}
+code,.mono{font-family:var(--mono);font-size:.86em}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--hash);outline-offset:2px}
+
+.mast{background:var(--ink);color:#eef3f8;padding:22px 28px 20px;border-bottom:6px solid var(--marker)}
+.mast-in{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:20px 40px;align-items:end}
+.mast h1{font-size:2.1rem;font-weight:700;letter-spacing:-.01em;line-height:1.1}
+.mast p{color:#b5c3d3;max-width:64ch;margin-top:8px}
+.mast .sim{font-size:.88rem;color:#8fa3b8;margin-top:6px}
+.modebar{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.seg{display:inline-flex;border:1px solid #3a5069;border-radius:3px;overflow:hidden}
+.seg button{background:#1d2f43;color:#b5c3d3;border:0;border-radius:0;padding:7px 14px;font-weight:600}
+.seg button.on{background:var(--marker);color:var(--marker-ink)}
+.seg button:hover:not(.on):not(:disabled){background:#2a4260}
+.modeinfo{font-size:.86rem;color:#8fa3b8;max-width:60ch}
+.modeinfo b{color:#eef3f8}
+.who{display:grid;gap:10px;min-width:320px}
+.who label{display:grid;gap:3px;font-size:.84rem;color:#b5c3d3}
+.who select,.who input{background:#1d2f43;border:1px solid #3a5069;border-radius:3px;padding:7px 9px;color:#fff}
+.who .addr{font-family:var(--mono);font-size:.74rem;color:#8fa3b8;word-break:break-all}
+.who .authline{font-size:.84rem}
+.who .hint{font-size:.78rem;color:#8fa3b8}
+.pill{display:inline-block;border-radius:99px;padding:1px 10px;font-size:.8rem;font-weight:600}
+.pill.ok{background:var(--good-bg);color:var(--good)}
+.pill.no{background:var(--bad-bg);color:var(--bad)}
+
+.wrap{max-width:1280px;margin:0 auto;padding:26px 28px 60px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:34px}
+.col{display:grid;gap:30px;align-content:start}
+section{background:var(--sheet);border:1px solid var(--rule);border-top:3px solid var(--ink);padding:20px 22px 22px}
+section h2{font-size:1.25rem;font-weight:700;margin-bottom:4px}
+section .lead{color:var(--mute);margin-bottom:14px;max-width:62ch}
+.field{display:grid;gap:4px;margin-bottom:12px}
+.field>span{font-size:.86rem;font-weight:600}
+.field input[type=text],.field select{background:#fff;border:1px solid #9fb0c0;border-radius:3px;padding:8px 10px;width:100%}
+.file{border:2px dashed #9fb0c0;background:#f4f7fa;padding:14px;border-radius:3px;display:grid;gap:6px}
+.file input{max-width:100%}
+.file small{color:var(--mute)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:3px;padding:8px 16px;font-weight:600}
+button:hover:not(:disabled){background:#243a52}
+button.alt{background:#fff;color:var(--ink)}
+button.alt:hover:not(:disabled){background:#eaf0f5}
+button.danger{background:#fff;color:var(--bad);border-color:var(--bad)}
+button.danger:hover:not(:disabled){background:var(--bad-bg)}
+button.go{background:var(--marker);border-color:#b58f00;color:var(--marker-ink)}
+button.go:hover:not(:disabled){background:#ffd430}
+button:disabled{opacity:.5;cursor:not-allowed}
+.sub{border-top:1px solid var(--rule);margin-top:16px;padding-top:14px}
+.sub h3{font-size:1rem;margin-bottom:2px}
+.sub p.note{color:var(--mute);font-size:.9rem;margin-bottom:10px}
+
+.pipe{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:0}
+.pipe:empty{display:none}
+.pipe li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:6px 0;position:relative;color:var(--mute)}
+.pipe li::before{content:"";position:absolute;left:13px;top:30px;bottom:-6px;width:2px;background:var(--rule)}
+.pipe li:last-child::before{display:none}
+.pipe .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.85rem;background:#e1e7ed;color:var(--mute);z-index:1}
+.pipe .ms{font-family:var(--mono);font-size:.8rem}
+.pipe li.run{color:var(--ink)}
+.pipe li.run .dot{background:var(--marker);color:var(--marker-ink)}
+.pipe li.ok{color:var(--ink)}
+.pipe li.ok .dot{background:var(--good);color:#fff}
+.pipe li.bad{color:var(--bad)}
+.pipe li.bad .dot{background:var(--bad);color:#fff}
+
+.out{margin-top:16px}
+.out:empty{display:none}
+.alert{padding:11px 14px;border-left:5px solid;border-radius:2px;font-size:.94rem}
+.alert.bad{background:var(--bad-bg);border-color:var(--bad)}
+.alert.good{background:var(--good-bg);border-color:var(--good)}
+.alert.warn{background:var(--warn-bg);border-color:#c79a00}
+.alert p+p{margin-top:4px}
+.verdict{display:grid;grid-template-columns:54px 1fr;gap:14px;align-items:center;padding:14px 16px;border-radius:2px}
+.verdict.good{background:var(--good-bg);border-left:6px solid var(--good)}
+.verdict.bad{background:var(--bad-bg);border-left:6px solid var(--bad)}
+.vicon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.7rem;font-weight:700;color:#fff}
+.good .vicon{background:var(--good)}
+.bad .vicon{background:var(--bad)}
+.verdict h3{font-size:1.2rem}
+.verdict p{font-size:.92rem;margin-top:2px}
+.checks{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.checks li{display:grid;grid-template-columns:52px 1fr;gap:8px;font-size:.92rem;align-items:start}
+.checks b{font-size:.78rem;text-align:center;padding:2px 0;border-radius:2px;margin-top:1px}
+.checks li.ok b{background:var(--good-bg);color:var(--good)}
+.checks li.bad b{background:var(--bad-bg);color:var(--bad)}
+.checks small{display:block;color:var(--mute)}
+.hashcmp{margin-top:12px;display:grid;gap:8px}
+.hashcmp div{display:grid;gap:2px}
+.hashcmp span{font-size:.8rem;font-weight:600;color:var(--mute)}
+.hashcmp code{word-break:break-all;background:#eef3f8;padding:6px 8px;border-radius:2px;color:var(--hash)}
+mark{background:#ffd0cc;color:#8a1410;font-weight:700;border-radius:2px}
+.facts{margin-top:12px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.facts dt{font-weight:600;color:var(--mute)}
+.facts dd{margin:0;word-break:break-all}
+.facts dd code{color:var(--hash)}
+
+.records{display:grid;gap:12px}
+.tag{display:grid;grid-template-columns:44px 1fr;gap:12px;border:1px solid var(--rule);padding:12px;background:#fff}
+.tag.sel{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--marker)}
+.marker{width:44px;height:52px;background:var(--marker);color:var(--marker-ink);font-weight:800;font-size:1.3rem;display:grid;place-items:center;clip-path:polygon(50% 0,100% 100%,0 100%);padding-top:14px}
+.tag h3{font-size:1rem;word-break:break-word}
+.tag .meta{color:var(--mute);font-size:.85rem}
+.tag dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:6px 0 8px;font-size:.84rem}
+.tag dt{color:var(--mute)}
+.tag dd{margin:0;word-break:break-all}
+.tag .row button{padding:5px 11px;font-size:.84rem}
+.empty{color:var(--mute);padding:6px 0}
+
+.chainstat{margin-bottom:14px}
+.chain{display:grid;gap:0;margin:0;padding:0;list-style:none;max-height:520px;overflow:auto}
+.blk{display:grid;grid-template-columns:22px 1fr;gap:12px;position:relative;padding-bottom:14px}
+.blk::before{content:"";position:absolute;left:10px;top:20px;bottom:-2px;width:2px;background:var(--ink)}
+.blk:last-child::before{display:none}
+.blk .node{width:22px;height:22px;border:3px solid var(--ink);background:var(--sheet);border-radius:3px;z-index:1}
+.blk .body{border:1px solid var(--rule);padding:8px 12px;background:#fff;font-size:.86rem}
+.blk .body b{font-size:.95rem}
+.blk .hl{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;margin-top:4px}
+.blk .hl span{color:var(--mute)}
+.blk .hl code{word-break:break-all;color:var(--hash)}
+.blk.bad .node{border-color:var(--bad);background:var(--bad-bg)}
+.blk.bad .body{border-color:var(--bad);background:var(--bad-bg)}
+.blk.after .body{opacity:.62;border-style:dashed}
+.blk.after::before{background:var(--bad)}
+.log{max-height:260px;overflow:auto;border:1px solid var(--rule);background:#fff;font-size:.84rem}
+.logline{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:5px 10px;border-bottom:1px solid #edf1f4}
+.logline time{font-family:var(--mono);color:var(--mute);font-size:.78rem}
+.logline.ok span{color:var(--good)}
+.logline.err span{color:var(--bad)}
+
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr;padding:18px 14px 50px}
+  .mast-in{grid-template-columns:1fr}
+  .who{min-width:0}
+}
+@media (prefers-reduced-motion:no-preference){
+  .verdict{animation:settle .35s ease-out}
+  @keyframes settle{from{transform:translateY(-4px);opacity:.3}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="mast-in">
+    <div>
+      <h1>Evidence Vault</h1>
+      <p>A working demonstration of Objective 3. Each file is hashed, encrypted with a chaos map, stored under a content address, and recorded on a ledger. Later you can check whether a file has been tampered with.</p>
+      <p class="sim" id="mastNote"></p>
+      <div class="modebar">
+        <div class="seg" role="group" aria-label="Backend">
+          <button id="modeSim" type="button">Simulated in this browser</button>
+          <button id="modeLive" type="button">Live: Fabric and IPFS</button>
+        </div>
+        <div class="modeinfo" id="modeInfo"></div>
+      </div>
+    </div>
+    <div class="who">
+      <label>Acting as
+        <select id="acct"></select>
+      </label>
+      <div class="authline" id="authline"></div>
+      <div class="addr" id="addr"></div>
+      <label>Session key (chaos seed between 0 and 1)
+        <input id="key" type="text" value="0.3141592653589793" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="hint" id="keyHint"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="col">
+
+    <section aria-labelledby="h-save">
+      <h2 id="h-save">Save evidence</h2>
+      <p class="lead">Pick any file. The vault keeps an encrypted copy and writes its fingerprint to the ledger.</p>
+      <div class="file">
+        <label for="fileSave"><b>File to save</b></label>
+        <input id="fileSave" type="file">
+        <small id="saveInfo">No file chosen. Files up to about 50 MB work well.</small>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <span>Case number</span>
+        <input id="caseId" type="text" autocomplete="off">
+      </div>
+      <div class="row"><button id="btnSave" class="go" type="button">Save to vault</button></div>
+      <ol class="pipe" id="savePipe"></ol>
+      <div class="out" id="saveOut" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="h-check">
+      <h2 id="h-check">Check for tampering</h2>
+      <p class="lead">Choose the saved record, then test either a file you hold or the copy inside the vault.</p>
+      <div class="field">
+        <span>Saved record</span>
+        <select id="recSel"></select>
+      </div>
+      <div class="sub">
+        <h3>Check a file you hold</h3>
+        <p class="note">Choose the file you want to test. Its fingerprint is compared with the one on the ledger.</p>
+        <div class="file">
+          <label for="fileCheck"><b>File to test</b></label>
+          <input id="fileCheck" type="file">
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="btnCheckFile" class="go" type="button">Check this file</button>
+          <button id="btnMakeTamper" class="alt" type="button">Download a tampered copy for testing</button>
+        </div>
+      </div>
+      <div class="sub">
+        <h3>Check the copy inside the vault</h3>
+        <p class="note">The vault retrieves its encrypted copy, confirms the content address, decrypts it with the session key, and compares the result with the ledger.</p>
+        <button id="btnCheckVault" class="go" type="button">Check vault copy</button>
+      </div>
+      <div class="out" id="checkOut" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="h-att">
+      <h2 id="h-att">Test an attack</h2>
+      <p class="lead" id="attackLead"></p>
+      <div class="row" id="attackBtns"></div>
+      <div class="out" id="attackOut" aria-live="polite"></div>
+    </section>
+
+  </div>
+
+  <div class="col">
+
+    <section aria-labelledby="h-rec">
+      <h2 id="h-rec">Evidence in the vault</h2>
+      <p class="lead" id="recLead"></p>
+      <div class="records" id="records"></div>
+      <div class="out" id="recOut" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="h-led">
+      <h2 id="h-led">Ledger</h2>
+      <p class="lead" id="ledLead"></p>
+      <div class="chainstat" id="chainStat"></div>
+      <ol class="chain" id="chain"></ol>
+      <div class="row" style="margin-top:6px">
+        <button id="btnExport" class="alt" type="button">Download ledger as JSON</button>
+        <button id="btnReset" class="danger" type="button">Reset the vault</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-log">
+      <h2 id="h-log">Activity</h2>
+      <div class="log" id="log"></div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+// <core>
+const enc = new TextEncoder();
+const toHex = u8 => Array.from(u8, b => b.toString(16).padStart(2, '0')).join('');
+
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function base58(bytes) {
+  const digits = [0];
+  for (const b of bytes) {
+    let carry = b;
+    for (let j = 0; j < digits.length; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry > 0) { digits.push(carry % 58); carry = (carry / 58) | 0; }
+  }
+  let out = '';
+  for (const b of bytes) { if (b === 0) out += '1'; else break; }
+  for (let i = digits.length - 1; i >= 0; i--) out += B58[digits[i]];
+  return out;
+}
+// CIDv0 style identifier: base58 of (0x12 0x20 + SHA-256 digest of the stored bytes).
+function cidFromDigest(d) {
+  const m = new Uint8Array(34); m[0] = 0x12; m[1] = 0x20; m.set(d, 2);
+  return base58(m);
+}
+
+function sha256Fallback(m) {
+  const K = new Uint32Array([
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  const H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]);
+  const l = m.length, bitLen = l * 8;
+  const padLen = ((l + 9 + 63) >> 6) << 6;
+  const buf = new Uint8Array(padLen); buf.set(m); buf[l] = 0x80;
+  const dv = new DataView(buf.buffer);
+  dv.setUint32(padLen - 8, Math.floor(bitLen / 0x100000000));
+  dv.setUint32(padLen - 4, bitLen >>> 0);
+  const w = new Uint32Array(64);
+  for (let off = 0; off < padLen; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = ((w[i-15] >>> 7) | (w[i-15] << 25)) ^ ((w[i-15] >>> 18) | (w[i-15] << 14)) ^ (w[i-15] >>> 3);
+      const s1 = ((w[i-2] >>> 17) | (w[i-2] << 15)) ^ ((w[i-2] >>> 19) | (w[i-2] << 13)) ^ (w[i-2] >>> 10);
+      w[i] = (w[i-16] + s0 + w[i-7] + s1) >>> 0;
+    }
+    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (let i = 0; i < 64; i++) {
+      const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + K[i] + w[i]) >>> 0;
+      const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+    H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0; H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+  }
+  const out = new Uint8Array(32), odv = new DataView(out.buffer);
+  for (let i = 0; i < 8; i++) odv.setUint32(i * 4, H[i]);
+  return out;
+}
+
+async function sha256(data) {
+  const u8 = data instanceof Uint8Array ? data : new Uint8Array(data);
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    try { return new Uint8Array(await crypto.subtle.digest('SHA-256', u8)); } catch (e) { /* use fallback */ }
+  }
+  return sha256Fallback(u8);
+}
+
+// Logistic map keystream, identical to the Python prototype and to server.js (r = 3.99, 1000 warm up steps).
+const CHAOS_R = 3.99, CHAOS_BURN = 1000;
+async function chaosCrypt(u8, x0, onProgress) {
+  const out = new Uint8Array(u8.length);
+  let x = x0;
+  for (let i = 0; i < CHAOS_BURN; i++) x = CHAOS_R * x * (1 - x);
+  const CH = 1 << 20;
+  for (let s = 0; s < u8.length; s += CH) {
+    const e = Math.min(s + CH, u8.length);
+    for (let i = s; i < e; i++) {
+      x = CHAOS_R * x * (1 - x);
+      out[i] = u8[i] ^ (Math.floor(x * 1e14) % 256);
+    }
+    if (onProgress) { onProgress(e / u8.length); await new Promise(r => setTimeout(r, 0)); }
+  }
+  return out;
+}
+
+async function blockHash(b) {
+  const body = JSON.stringify({ i: b.index, t: b.ts, ty: b.type, a: b.actor, p: b.payload, pr: b.prev });
+  return toHex(await sha256(enc.encode(body)));
+}
+async function verifyChain(ledger) {
+  for (let i = 0; i < ledger.length; i++) {
+    const b = ledger[i];
+    if (i > 0 && b.prev !== ledger[i - 1].hash) return { ok: false, at: i, why: 'link to the previous block is broken' };
+    if (await blockHash(b) !== b.hash) return { ok: false, at: i, why: 'the stored contents no longer match the block hash' };
+  }
+  return { ok: true };
+}
+
+function diffHex(a, b) {
+  let x = '', y = '';
+  const n = Math.max(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    const ca = a[i] || '', cb = b[i] || '';
+    if (ca === cb) { x += ca; y += cb; } else { x += '<mark>' + ca + '</mark>'; y += '<mark>' + cb + '</mark>'; }
+  }
+  return { a: x, b: y };
+}
+// </core>
+
+/* ---------------------------------------------------------------- helpers */
+const $ = s => document.querySelector(s);
+const ZERO = '0'.repeat(64);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const short = (h, n = 8) => h && h.length > 2 * n + 1 ? h.slice(0, n) + '...' + h.slice(-n) : (h || '');
+function fmtSize(n) {
+  if (n < 1024) return n + ' bytes';
+  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(2) + ' MB';
+}
+const ROLE_LABEL = { admin: 'Administrator', investigator: 'Investigator', verifier: 'Verifier (read only)' };
+const state = { acct: 'officerA', accounts: [], records: [], recErr: null, ledger: { blocks: [], chain: { ok: true } }, busy: false, selected: null, mode: null };
+const cur = () => state.accounts.find(a => a.key === state.acct) || state.accounts[0];
+const nameOf = addr => { const a = state.accounts.find(x => x.address === addr); return a ? a.name : addr; };
+
+function log(msg, type) {
+  const d = document.createElement('div');
+  d.className = 'logline ' + (type || '');
+  d.innerHTML = '<time>' + new Date().toLocaleTimeString() + '</time><span>' + esc(msg) + '</span>';
+  $('#log').prepend(d);
+}
+function parseKey() {
+  const v = parseFloat($('#key').value);
+  if (!(v > 0 && v < 1)) throw new Error('The session key must be a number greater than 0 and less than 1, for example 0.3141592653589793.');
+  return v;
+}
+function setBusy(b) {
+  state.busy = b;
+  document.querySelectorAll('button').forEach(x => { x.disabled = b; });
+}
+function download(name, data, type) {
+  const url = URL.createObjectURL(new Blob([data], { type: type || 'application/octet-stream' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+const timeIt = () => { const t = performance.now(); return () => performance.now() - t; };
+
+/* -------------------------------------------------- storage for the simulation */
+let db = null;
+const mem = { blobs: new Map(), meta: new Map() };
+let persistent = false;
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('evidence-vault-demo', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('blobs'); r.result.createObjectStore('meta'); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function initDB() { if (db || !window.indexedDB) return; try { db = await openDB(); persistent = true; } catch (e) { db = null; persistent = false; } }
+function tx(store, mode, fn) {
+  return new Promise((res, rej) => {
+    const t = db.transaction(store, mode);
+    const r = fn(t.objectStore(store));
+    t.oncomplete = () => res(r && r.result);
+    t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error);
+  });
+}
+async function kvGet(store, key) { return db ? tx(store, 'readonly', os => os.get(key)) : mem[store].get(key); }
+async function kvSet(store, key, val) { if (db) await tx(store, 'readwrite', os => os.put(val, key)); else mem[store].set(key, val); }
+async function kvClear() {
+  if (db) { await tx('blobs', 'readwrite', os => os.clear()); await tx('meta', 'readwrite', os => os.clear()); }
+  else { mem.blobs.clear(); mem.meta.clear(); }
+}
+
+/* =============================================================================
+   Backend 1: simulated in this browser
+   ============================================================================= */
+const SIMDEFS = [
+  { key: 'officerA', name: 'Investigator A (administrator)', role: 'admin', canWrite: true, canRead: true },
+  { key: 'officerB', name: 'Investigator B', role: 'investigator', canWrite: true, canRead: true },
+  { key: 'verifier', name: 'Verifier (read only)', role: 'verifier', canWrite: false, canRead: true },
+  { key: 'outsider', name: 'Outsider (not authorised)', role: null, canWrite: false, canRead: false },
+];
+
+const Sim = {
+  id: 'sim',
+  pipeLabels: ['Hash the original file with SHA 256', 'Encrypt with the chaos map', 'Store the ciphertext under its content ID', 'Write the entry to the ledger'],
+  refLabel: 'Ledger block',
+  hashLabel: 'Block hash',
+  canReset: true,
+  attacks: [
+    { id: 'corrupt', label: 'Corrupt the stored copy' },
+    { id: 'edit', label: 'Edit the ledger entry' },
+  ],
+  attackLead: 'These buttons play the part of an attacker who reaches the storage directly, without going through the application. Run one, then check the same record again.',
+  ledgerLead: 'Every block stores the hash of the block before it, so changing one entry breaks every link after it.',
+  mastNote: 'IPFS and the ledger are simulated inside this browser. Switch to live mode to use your real IPFS node and Fabric network.',
+  keyHint: 'The key stays inside this page.',
+  raw: [],
+
+  async init() {
+    state.accounts = [];
+    for (const d of SIMDEFS) {
+      state.accounts.push({ ...d, address: '0x' + toHex(await sha256(enc.encode('vault-account:' + d.key))).slice(0, 40) });
+    }
+    await initDB();
+    const saved = await kvGet('meta', 'ledger');
+    if (saved && saved.length) this.raw = saved;
+    else { this.raw = []; await this.addBlock('GENESIS', state.accounts[0].address, { note: 'Vault created' }); }
+  },
+  acct(key) { return state.accounts.find(a => a.key === key); },
+  refuse(msg) { return new Error('Refused by the chaincode: ' + msg); },
+  needRead(key) { if (!this.acct(key).canRead) throw this.refuse('Not authorised'); },
+  needWrite(key) { if (!this.acct(key).canWrite) throw this.refuse('Not authorised'); },
+
+  async addBlock(type, actor, payload) {
+    const prev = this.raw.length ? this.raw[this.raw.length - 1].hash : ZERO;
+    const b = { index: this.raw.length, ts: Date.now(), type, actor, payload, prev };
+    b.hash = await blockHash(b);
+    this.raw.push(b);
+    await kvSet('meta', 'ledger', this.raw);
+    return b;
+  },
+  recordsRaw() {
+    const recs = [];
+    for (const b of this.raw) {
+      if (b.type === 'REGISTER') recs.push(Object.assign({}, b.payload, { block: b.index, time: b.ts }));
+      else if (b.type === 'TRANSFER') { const r = recs.find(x => x.evidenceId === b.payload.evidenceId); if (r) r.custodian = b.payload.to; }
+    }
+    return recs;
+  },
+  async chainNow() {
+    const c = await verifyChain(this.raw);
+    c.note = c.ok ? 'The chain of blocks is intact.' : 'Block ' + c.at + ': ' + c.why + '.';
+    return c;
+  },
+
+  async records(acct) {
+    this.needRead(acct);
+    return this.recordsRaw().map(r => ({ ...r, custodianName: nameOf(r.custodian) }));
+  },
+  async ledger() {
+    const chain = await this.chainNow();
+    const blocks = this.raw.map(b => {
+      const title = b.type === 'REGISTER' ? 'Registered evidence ' + b.payload.evidenceId + ' (' + b.payload.fileName + ')'
+        : b.type === 'TRANSFER' ? 'Custody of evidence ' + b.payload.evidenceId + ' passed on'
+        : b.type.charAt(0) + b.type.slice(1).toLowerCase();
+      const detail = b.type === 'TRANSFER' ? 'New custodian: ' + nameOf(b.payload.to) : (b.payload.note || '');
+      return { index: b.index, title, detail, actor: nameOf(b.actor), hash: b.hash, prev: b.prev, time: b.ts };
+    });
+    return { blocks, chain, raw: this.raw };
+  },
+
+  async save({ file, caseId, key, acct }, ui) {
+    this.needWrite(acct);
+    ui.pipe(0, 'run'); let t = timeIt();
+    const orig = new Uint8Array(await file.arrayBuffer());
+    const fileHash = toHex(await sha256(orig));
+    ui.pipe(0, 'ok', t());
+
+    ui.pipe(1, 'run'); t = timeIt();
+    const cipher = await chaosCrypt(orig, key, p => ui.progress(1, p));
+    ui.pipe(1, 'ok', t());
+
+    ui.pipe(2, 'run'); t = timeIt();
+    const cid = cidFromDigest(await sha256(cipher));
+    const existed = await kvGet('blobs', cid);
+    await kvSet('blobs', cid, cipher.buffer);
+    ui.pipe(2, 'ok', t());
+
+    ui.pipe(3, 'run'); t = timeIt();
+    const evidenceId = this.recordsRaw().length + 1;
+    const blk = await this.addBlock('REGISTER', this.acct(acct).address, {
+      evidenceId, caseId, fileName: file.name, fileSize: file.size, mime: file.type || 'application/octet-stream',
+      fileHash, cid, custodian: this.acct(acct).address
+    });
+    ui.pipe(3, 'ok', t());
+    return { evidenceId, fileHash, cid, existed: Boolean(existed), facts: [['Ledger block', blk.hash]] };
+  },
+
+  async checkFile({ rec, file, acct }) {
+    this.needRead(acct);
+    const chain = await this.chainNow();
+    const local = toHex(await sha256(new Uint8Array(await file.arrayBuffer())));
+    return { chain, hashOk: local === rec.fileHash, local, ledger: rec.fileHash };
+  },
+  async readVault(rec, x0) {
+    const chain = await this.chainNow();
+    const buf = await kvGet('blobs', rec.cid);
+    if (!buf) return { raw: { chain, missing: true, ledger: rec.fileHash }, plain: null };
+    const cipher = new Uint8Array(buf);
+    const cidNow = cidFromDigest(await sha256(cipher));
+    const plain = await chaosCrypt(cipher, x0);
+    const plainHash = toHex(await sha256(plain));
+    return { raw: { chain, missing: false, cidNow, cidOk: cidNow === rec.cid, hashOk: plainHash === rec.fileHash, plainHash, ledger: rec.fileHash }, plain };
+  },
+  async checkVault({ rec, key, acct }) { this.needRead(acct); return (await this.readVault(rec, key)).raw; },
+  async retrieve({ rec, key, acct }) {
+    this.needRead(acct);
+    const { raw, plain } = await this.readVault(rec, key);
+    const ok = plain && raw.chain.ok && raw.cidOk && raw.hashOk;
+    return ok ? { ok: true, data: plain } : { ok: false };
+  },
+  async tampered({ rec, key, acct }) {
+    this.needRead(acct);
+    const buf = await kvGet('blobs', rec.cid);
+    if (!buf) throw new Error('The stored copy is missing, so a test copy cannot be made.');
+    const plain = await chaosCrypt(new Uint8Array(buf), key);
+    if (!plain.length) throw new Error('The stored file is empty, so there is nothing to alter.');
+    const i = Math.floor(plain.length / 2);
+    plain[i] ^= 1;
+    return { data: plain, index: i };
+  },
+  async transfer({ rec, acct }) {
+    this.needWrite(acct);
+    const me = this.acct(acct);
+    if (rec.custodian !== me.address) throw this.refuse('Not custodian. Only ' + nameOf(rec.custodian) + ' can hand over evidence ' + rec.evidenceId + '.');
+    const to = state.accounts.find(a => a.canWrite && a.key !== acct);
+    await this.addBlock('TRANSFER', me.address, { evidenceId: rec.evidenceId, from: me.address, to: to.address });
+    return { toName: to.name };
+  },
+  async runAttack(id, rec) {
+    if (id === 'corrupt') {
+      const buf = await kvGet('blobs', rec.cid);
+      if (!buf || !buf.byteLength) throw new Error('There is no stored copy to corrupt for this record.');
+      const u8 = new Uint8Array(buf.slice(0));
+      const i = Math.floor(u8.length / 2);
+      u8[i] ^= 1;
+      await kvSet('blobs', rec.cid, u8.buffer);
+      return { lines: ['One bit of the stored copy of evidence ' + rec.evidenceId + ' was flipped at byte ' + i + '. Run Check vault copy to see the vault catch it.'] };
+    }
+    const b = this.raw[rec.block];
+    const first = b.payload.fileHash[0];
+    b.payload.fileHash = (first === 'a' ? 'b' : 'a') + b.payload.fileHash.slice(1);
+    await kvSet('meta', 'ledger', this.raw);
+    return { lines: ['The registered hash inside block ' + b.index + ' was edited, and the block hash was left unchanged. The Ledger section now shows where the chain breaks. Run either check to see the result.'] };
+  },
+  async reset() {
+    await kvClear();
+    this.raw = [];
+    await this.addBlock('GENESIS', state.accounts[0].address, { note: 'Vault created' });
+  },
+};
+
+/* =============================================================================
+   Backend 2: live server (Fabric and IPFS), see server.js
+   ============================================================================= */
+const API = location.protocol.indexOf('http') === 0 ? '' : 'http://127.0.0.1:3000';
+
+async function api(path, opts) {
+  let r;
+  try { r = await fetch(API + path, opts); }
+  catch (e) { throw new Error('The vault server is not reachable. Start it in PowerShell with: node server.js'); }
+  if (!r.ok) {
+    let msg = 'Server error ' + r.status;
+    try { msg = (await r.json()).error || msg; } catch (e) { /* not json */ }
+    const err = new Error(msg); err.status = r.status; throw err;
+  }
+  return r;
+}
+const apiJson = async (p, o) => (await api(p, o)).json();
+const hd = (acct, extra) => Object.assign({ 'X-Acct': acct }, extra || {});
+
+const Live = {
+  id: 'live',
+  pipeLabels: ['Hash the original file with SHA 256', 'Encrypt with the chaos map', 'Add the ciphertext to IPFS', 'Endorse and commit the transaction on the ledger'],
+  refLabel: 'Transaction',
+  hashLabel: 'Transaction',
+  canReset: false,
+  attacks: [
+    { id: 'altered_copy', label: 'Alter a copy and add it to IPFS' },
+    { id: 'swap_copy', label: 'Swap the stored copy behind a record' },
+    { id: 'edit_attempt', label: 'Try to edit the record from other accounts' },
+  ],
+  attackLead: 'These buttons try to defeat the real IPFS and ledger. The ledger cannot be edited from outside and the chaincode has no edit function, so each button shows what the network refuses or leaves unchanged.',
+  ledgerLead: 'Blocks are validated by the peers of both organisations and linked by hash. Each entry below is an event the chaincode emitted when a transaction committed.',
+  keyHint: 'The key is sent to the local server, which encrypts and decrypts the files.',
+  info: null,
+
+  async probe() {
+    const r = await fetch(API + '/api/status', { signal: AbortSignal.timeout(4000) });
+    return r.json();
+  },
+  async init(status) {
+    this.info = status;
+    state.accounts = status.accounts.map(a => ({ ...a, roleLabel: ROLE_LABEL[a.role] || 'No role' }));
+    this.mastNote = status.demo
+      ? 'Demo mode. The server is using a stand in ledger that runs the real chaincode logic, because it was started with --demo.'
+      : 'Live mode. Files are encrypted by the server, stored on your IPFS node, and registered by the evidence chaincode on the Fabric network, which both organisations must endorse.';
+  },
+  async records(acct) { return apiJson('/api/records', { headers: hd(acct) }); },
+  async ledger() {
+    try { return await apiJson('/api/ledger'); }
+    catch (e) { return { blocks: [], chain: { ok: false, why: e.message, err: true } }; }
+  },
+  async save({ file, caseId, key, acct }, ui) {
+    ui.pipe(0, 'run');
+    const j = await apiJson('/api/save', {
+      method: 'POST', body: file,
+      headers: hd(acct, { 'X-Case': encodeURIComponent(caseId), 'X-Name': encodeURIComponent(file.name), 'X-Mime': file.type || 'application/octet-stream', 'X-Key': String(key), 'Content-Type': 'application/octet-stream' }),
+    });
+    j.steps.forEach((ms, i) => ui.pipe(i, 'ok', ms));
+    return { evidenceId: j.evidenceId, fileHash: j.fileHash, cid: j.cid, existed: false, facts: [['Transaction', j.txId], ['Block number', String(j.blockNumber)]] };
+  },
+  async checkFile({ rec, file, acct }) {
+    return apiJson('/api/check-file', { method: 'POST', body: file, headers: hd(acct, { 'X-Id': String(rec.evidenceId), 'Content-Type': 'application/octet-stream' }) });
+  },
+  async checkVault({ rec, key, acct }) {
+    return apiJson('/api/check-vault', { method: 'POST', headers: hd(acct, { 'X-Id': String(rec.evidenceId), 'X-Key': String(key) }) });
+  },
+  async retrieve({ rec, key, acct }) {
+    try {
+      const r = await api('/api/retrieve', { headers: hd(acct, { 'X-Id': String(rec.evidenceId), 'X-Key': String(key) }) });
+      return { ok: true, data: new Uint8Array(await r.arrayBuffer()) };
+    } catch (e) { if (e.status === 409) return { ok: false }; throw e; }
+  },
+  async tampered({ rec, key, acct }) {
+    const r = await api('/api/tampered', { headers: hd(acct, { 'X-Id': String(rec.evidenceId), 'X-Key': String(key) }) });
+    return { data: new Uint8Array(await r.arrayBuffer()), index: r.headers.get('X-Flipped-Byte') };
+  },
+  async transfer({ rec, acct }) {
+    return apiJson('/api/transfer', { method: 'POST', headers: hd(acct, { 'X-Id': String(rec.evidenceId) }) });
+  },
+  async runAttack(id, rec) {
+    return apiJson('/api/attack?kind=' + encodeURIComponent(id), { method: 'POST', headers: hd('officerA', { 'X-Id': String(rec.evidenceId) }) });
+  },
+};
+
+let B = Sim;
+
+/* ---------------------------------------------------------------- rendering */
+async function refresh() {
+  state.recErr = null;
+  try { state.records = await B.records(state.acct); }
+  catch (e) { state.records = []; state.recErr = e.message; }
+  state.ledger = await B.ledger();
+  renderAccount(); renderRecords(); renderChain(); renderMode();
+  if (!$('#caseId').dataset.touched) $('#caseId').value = 'CAS-' + new Date().getFullYear() + '-' + String(state.records.length + 1).padStart(3, '0');
+}
+function renderMode() {
+  $('#modeSim').classList.toggle('on', B.id === 'sim');
+  $('#modeLive').classList.toggle('on', B.id === 'live');
+  $('#mastNote').textContent = B.mastNote;
+  $('#keyHint').textContent = B.keyHint;
+  $('#attackLead').textContent = B.attackLead;
+  $('#ledLead').textContent = B.ledgerLead;
+  $('#btnReset').style.display = B.canReset ? '' : 'none';
+  $('#attackBtns').innerHTML = B.attacks.map(a => '<button class="danger" type="button" data-attack="' + a.id + '">' + esc(a.label) + '</button>').join('');
+  if (B.id === 'live' && B.info) {
+    const i = B.info;
+    $('#modeInfo').innerHTML = '<b>Connected.</b> IPFS ' + esc(i.ipfs.version || '') + ', ledger ' + esc(i.chain.kind) + (i.chain.kind === 'fabric' ? ', channel ' + esc(i.chain.channel) + ', chaincode ' + esc(i.chain.chaincode) : '');
+  }
+}
+function renderAccount() {
+  const a = cur();
+  $('#acct').innerHTML = state.accounts.map(x => '<option value="' + x.key + '"' + (x.key === state.acct ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('');
+  $('#addr').textContent = a.address;
+  $('#authline').innerHTML = a.canWrite
+    ? '<span class="pill ok">' + esc(ROLE_LABEL[a.role] || 'Authorised') + '</span>'
+    : a.canRead ? '<span class="pill ok">Verifier, read only</span> Can check evidence but cannot save or hand it over.'
+    : '<span class="pill no">Not authorised</span> The ledger will refuse every request from this account.';
+}
+function renderRecords() {
+  const recs = state.records;
+  const sel = $('#recSel');
+  const keep = state.selected != null ? state.selected : (sel.value ? +sel.value : null);
+  sel.innerHTML = recs.length
+    ? recs.map(r => '<option value="' + r.evidenceId + '">Evidence ' + r.evidenceId + ' - ' + esc(r.caseId) + ' - ' + esc(r.fileName) + '</option>').join('')
+    : '<option value="">No evidence to show</option>';
+  if (keep != null && recs.some(r => r.evidenceId === keep)) sel.value = String(keep);
+  state.selected = sel.value ? +sel.value : null;
+
+  $('#recLead').textContent = state.recErr ? '' : recs.length
+    ? recs.length + (recs.length === 1 ? ' item is' : ' items are') + ' registered. Select a tag to work on it.'
+    : 'Nothing has been saved yet. Save a file to create the first record.';
+  if (state.recErr) { $('#records').innerHTML = '<div class="alert bad"><b>The ledger refused to list records for this account.</b> ' + esc(state.recErr) + '</div>'; return; }
+  const other = state.accounts.find(a => a.canWrite && a.key !== state.acct);
+  $('#records').innerHTML = recs.length ? recs.map(r =>
+    '<article class="tag' + (r.evidenceId === state.selected ? ' sel' : '') + '" data-id="' + r.evidenceId + '">' +
+      '<div class="marker" aria-hidden="true">' + r.evidenceId + '</div>' +
+      '<div><h3>' + esc(r.fileName) + '</h3>' +
+      '<div class="meta">' + esc(r.caseId) + (r.fileSize ? ', ' + fmtSize(r.fileSize) : '') + ', saved ' + new Date(r.time).toLocaleString() + '</div>' +
+      '<dl><dt>Custodian</dt><dd>' + esc(r.custodianName || nameOf(r.custodian)) + '</dd>' +
+      '<dt>Content ID</dt><dd><code>' + esc(short(r.cid, 10)) + '</code></dd>' +
+      '<dt>File hash</dt><dd><code>' + esc(short(r.fileHash, 10)) + '</code></dd></dl>' +
+      '<div class="row">' +
+        '<button class="alt" data-act="pick" type="button">Select</button>' +
+        '<button class="alt" data-act="transfer" type="button">Hand custody to ' + esc(other ? other.name : 'another investigator') + '</button>' +
+        '<button class="alt" data-act="get" type="button">Retrieve original</button>' +
+      '</div></div></article>'
+  ).join('') : '<p class="empty">The vault is empty.</p>';
+}
+function renderChain() {
+  const c = state.ledger.chain;
+  let stat;
+  if (c.err) stat = '<div class="alert bad"><b>The ledger could not be read.</b> ' + esc(c.why) + '</div>';
+  else if (B.id === 'live') stat = '<div class="alert good"><b>Ledger held by the peers.</b> ' + esc(c.note || '') + ' Evidence activity spans ' + (c.height || 0) + ' blocks so far.</div>';
+  else stat = c.ok
+    ? '<div class="alert good"><b>Ledger intact.</b> All ' + state.ledger.blocks.length + ' blocks link correctly and match their hashes.</div>'
+    : '<div class="alert bad"><b>Ledger broken at block ' + c.at + '.</b> ' + esc(c.why.charAt(0).toUpperCase() + c.why.slice(1)) + '. Every block after it is no longer trustworthy.</div>';
+  $('#chainStat').innerHTML = stat;
+  $('#chain').innerHTML = state.ledger.blocks.map((b, i) => {
+    const cls = B.id === 'sim' && !c.ok && i === c.at ? 'bad' : (B.id === 'sim' && !c.ok && i > c.at ? 'after' : '');
+    return '<li class="blk ' + cls + '"><div class="node"></div><div class="body">' +
+      '<b>Block ' + b.index + ', ' + esc(b.title) + '</b>' + (b.time ? ' <span class="mono">' + new Date(b.time).toLocaleTimeString() + '</span>' : '') +
+      (b.detail ? '<br>' + esc(b.detail) : '') +
+      '<div class="hl">' + (b.actor ? '<span>By</span><code>' + esc(b.actor) + '</code>' : '') +
+      '<span>' + esc(B.hashLabel) + '</span><code>' + esc(short(b.hash, 12)) + '</code>' +
+      (b.prev ? '<span>Previous</span><code>' + esc(short(b.prev, 12)) + '</code>' : '') + '</div></div></li>';
+  }).join('');
+}
+function checksHTML(checks) {
+  return '<ul class="checks">' + checks.map(c =>
+    '<li class="' + (c.ok ? 'ok' : 'bad') + '"><b>' + (c.ok ? 'Pass' : 'Fail') + '</b><div>' + esc(c.label) +
+    (c.note ? '<small>' + esc(c.note) + '</small>' : '') + '</div></li>').join('') + '</ul>';
+}
+function verdictHTML(ok, title, sub) {
+  return '<div class="verdict ' + (ok ? 'good' : 'bad') + '"><div class="vicon" aria-hidden="true">' + (ok ? '&#10003;' : '&#10005;') + '</div><div><h3>' + esc(title) + '</h3><p>' + esc(sub) + '</p></div></div>';
+}
+function hashHTML(l1, h1, l2, h2) {
+  const d = diffHex(h1, h2);
+  return '<div class="hashcmp"><div><span>' + esc(l1) + '</span><code>' + d.a + '</code></div><div><span>' + esc(l2) + '</span><code>' + d.b + '</code></div></div>';
+}
+function showError(el, e, step) {
+  el.innerHTML = '<div class="alert bad"><b>' + esc(step) + '</b> ' + esc(e.message || e) + '</div>';
+  log(step + ' ' + (e.message || e), 'err');
+}
+function selectedRecord() {
+  const r = state.records.find(x => x.evidenceId === state.selected);
+  if (!r) throw new Error(state.recErr ? 'This account cannot see any records. Switch to an account with a role.' : 'Choose a saved record first. Save a file if the vault is empty.');
+  return r;
+}
+
+/* ------------------------------------------------------------------ actions */
+async function doSave() {
+  const out = $('#saveOut'), P = $('#savePipe');
+  out.innerHTML = ''; P.innerHTML = '';
+  let step = -1;
+  const ui = {
+    pipe(i, st, ms) { step = i; const li = P.children[i]; li.className = st; if (ms != null) li.querySelector('.ms').textContent = ms.toFixed(1) + ' ms'; },
+    progress(i, p) { P.children[i].querySelector('.ms').textContent = Math.round(p * 100) + '%'; },
+  };
+  try {
+    const file = $('#fileSave').files[0];
+    if (!file) throw new Error('Choose a file first.');
+    const key = parseKey();
+    const caseId = $('#caseId').value.trim() || 'CASE';
+    setBusy(true);
+    P.innerHTML = B.pipeLabels.map((l, i) => '<li><span class="dot">' + (i + 1) + '</span><span>' + esc(l) + '</span><span class="ms"></span></li>').join('');
+    const r = await B.save({ file, caseId, key, acct: state.acct }, ui);
+    state.selected = r.evidenceId;
+    $('#caseId').dataset.touched = '';
+    await refresh();
+    out.innerHTML = '<div class="alert good"><b>Saved as evidence ' + r.evidenceId + '.</b> ' + (r.existed ? 'An identical encrypted copy was already in the vault, so the same content ID was reused. ' : '') + 'Keep the session key. Without it the stored copy cannot be decrypted or checked.</div>' +
+      '<dl class="facts"><dt>Case</dt><dd>' + esc(caseId) + '</dd><dt>File hash</dt><dd><code>' + r.fileHash + '</code></dd><dt>Content ID</dt><dd><code>' + r.cid + '</code></dd>' +
+      r.facts.map(f => '<dt>' + esc(f[0]) + '</dt><dd><code>' + esc(f[1]) + '</code></dd>').join('') + '</dl>';
+    log('Saved ' + file.name + ' as evidence ' + r.evidenceId + ' (' + fmtSize(file.size) + ').', 'ok');
+  } catch (e) {
+    if (step >= 0 && P.children[step]) { P.children[step].className = 'bad'; }
+    showError(out, e, 'Save failed.');
+  } finally { setBusy(false); }
+}
+
+function composeFile(rec, name, r) {
+  const ok = r.chain.ok && r.hashOk;
+  const checks = [
+    { ok: r.chain.ok, label: 'The ledger entry is authentic', note: r.chain.note },
+    { ok: r.hashOk, label: 'The file matches the fingerprint on the ledger', note: r.hashOk ? 'SHA 256 hashes are identical.' : 'The SHA 256 hash of this file differs from the registered hash.' },
+  ];
+  let title, sub;
+  if (ok) { title = 'File is intact'; sub = name + ' is identical to evidence ' + rec.evidenceId + ' as it was saved.'; }
+  else if (!r.chain.ok) { title = 'Ledger has been tampered with'; sub = 'The record for evidence ' + rec.evidenceId + ' cannot be trusted, so this file cannot be confirmed.'; }
+  else { title = 'File has been altered'; sub = name + ' is not the file that was saved as evidence ' + rec.evidenceId + '.'; }
+  return verdictHTML(ok, title, sub) + checksHTML(checks) + hashHTML('Hash on the ledger', r.ledger, 'Hash of the file you tested', r.local);
+}
+function composeVault(rec, r, ms) {
+  const checks = [{ ok: r.chain.ok, label: 'The ledger entry is authentic', note: r.chain.note }];
+  if (r.missing) checks.push({ ok: false, label: 'The stored copy exists', note: 'Nothing is stored under content ID ' + short(rec.cid, 10) + '.' });
+  else {
+    checks.push({ ok: r.cidOk, label: 'The stored copy still matches its content ID', note: r.cidOk ? 'The recomputed content ID is identical.' : 'The stored bytes now produce ' + short(r.cidNow, 10) + ', not ' + short(rec.cid, 10) + '.' });
+    checks.push({ ok: r.hashOk, label: 'The decrypted file matches the fingerprint on the ledger', note: r.hashOk ? 'SHA 256 hashes are identical.' : 'The decrypted file does not match. The stored copy was altered or the session key is wrong.' });
+  }
+  const ok = r.chain.ok && !r.missing && r.cidOk && r.hashOk;
+  let title, sub;
+  if (ok) { title = 'Vault copy is intact'; sub = 'Evidence ' + rec.evidenceId + ' was retrieved, decrypted and matches the ledger. Completed in ' + ms.toFixed(0) + ' ms.'; }
+  else if (!r.chain.ok) { title = 'Ledger has been tampered with'; sub = 'The record for evidence ' + rec.evidenceId + ' cannot be trusted.'; }
+  else if (r.missing) { title = 'Stored copy is missing'; sub = 'The ledger record for evidence ' + rec.evidenceId + ' points at a copy that cannot be found.'; }
+  else { title = 'Vault copy has been tampered with'; sub = 'The stored copy of evidence ' + rec.evidenceId + ' no longer matches what was registered.'; }
+  return { ok, html: verdictHTML(ok, title, sub) + checksHTML(checks) + (r.plainHash ? hashHTML('Hash on the ledger', r.ledger, 'Hash of the decrypted copy', r.plainHash) : '') };
+}
+
+async function checkFile() {
+  const out = $('#checkOut'); out.innerHTML = '';
+  try {
+    const rec = selectedRecord();
+    const f = $('#fileCheck').files[0];
+    if (!f) throw new Error('Choose the file you want to test.');
+    setBusy(true);
+    const r = await B.checkFile({ rec, file: f, acct: state.acct });
+    out.innerHTML = composeFile(rec, f.name, r);
+    const ok = r.chain.ok && r.hashOk;
+    log('Checked ' + f.name + ' against evidence ' + rec.evidenceId + ': ' + (ok ? 'intact' : 'NOT intact') + '.', ok ? 'ok' : 'err');
+  } catch (e) { showError(out, e, 'Check failed.'); } finally { setBusy(false); }
+}
+async function checkVault() {
+  const out = $('#checkOut'); out.innerHTML = '';
+  try {
+    const rec = selectedRecord();
+    const key = parseKey();
+    setBusy(true);
+    const t = timeIt();
+    const raw = await B.checkVault({ rec, key, acct: state.acct });
+    const c = composeVault(rec, raw, t());
+    out.innerHTML = c.html;
+    log('Checked vault copy of evidence ' + rec.evidenceId + ': ' + (c.ok ? 'intact' : 'NOT intact') + '.', c.ok ? 'ok' : 'err');
+  } catch (e) { showError(out, e, 'Check failed.'); } finally { setBusy(false); }
+}
+async function makeTamper() {
+  const out = $('#checkOut'); out.innerHTML = '';
+  try {
+    const rec = selectedRecord();
+    const key = parseKey();
+    setBusy(true);
+    const t = await B.tampered({ rec, key, acct: state.acct });
+    download('TAMPERED_' + rec.fileName, t.data, rec.mime);
+    out.innerHTML = '<div class="alert warn">Downloaded <b>TAMPERED_' + esc(rec.fileName) + '</b> with one bit flipped at byte ' + esc(t.index) + '. Choose it under <b>File to test</b> and press Check this file. If the check reports that even the genuine file differs, the session key does not match the one used to save it.</div>';
+    log('Made a tampered test copy of evidence ' + rec.evidenceId + '.', '');
+  } catch (e) { showError(out, e, 'Could not make a test copy.'); } finally { setBusy(false); }
+}
+async function transfer(id) {
+  const out = $('#recOut'); out.innerHTML = '';
+  try {
+    const rec = state.records.find(r => r.evidenceId === id);
+    setBusy(true);
+    const r = await B.transfer({ rec, acct: state.acct });
+    await refresh();
+    out.innerHTML = '<div class="alert good">Custody of evidence ' + id + ' passed to ' + esc(r.toName) + '. A new ledger entry records the handover.</div>';
+    log('Custody of evidence ' + id + ' passed from ' + cur().name + ' to ' + r.toName + '.', 'ok');
+  } catch (e) { showError(out, e, 'Handover refused.'); } finally { setBusy(false); }
+}
+async function getOriginal(id) {
+  const out = $('#recOut'); out.innerHTML = '';
+  try {
+    const rec = state.records.find(r => r.evidenceId === id);
+    const key = parseKey();
+    setBusy(true);
+    const r = await B.retrieve({ rec, key, acct: state.acct });
+    if (!r.ok) {
+      out.innerHTML = '<div class="alert bad"><b>Retrieval blocked.</b> The integrity check failed, so the vault will not release this file as evidence. Run Check vault copy to see which check failed.</div>';
+      log('Retrieval of evidence ' + id + ' blocked: integrity check failed.', 'err');
+      return;
+    }
+    download(rec.fileName, r.data, rec.mime);
+    out.innerHTML = '<div class="alert good">Evidence ' + id + ' passed every check and was downloaded as <b>' + esc(rec.fileName) + '</b>.</div>';
+    log('Retrieved evidence ' + id + ' after a successful integrity check.', 'ok');
+  } catch (e) { showError(out, e, 'Retrieval refused.'); } finally { setBusy(false); }
+}
+async function runAttack(id) {
+  const out = $('#attackOut'); out.innerHTML = '';
+  try {
+    const rec = selectedRecord();
+    setBusy(true);
+    const r = await B.runAttack(id, rec);
+    if (r.select) state.selected = r.select;
+    await refresh();
+    out.innerHTML = '<div class="alert warn">' + r.lines.map(l => '<p>' + esc(l) + '</p>').join('') + '</div>';
+    log('ATTACK (' + id + ') on evidence ' + rec.evidenceId + '.', 'err');
+  } catch (e) { showError(out, e, 'Attack could not run.'); } finally { setBusy(false); }
+}
+async function resetAll() {
+  if (!B.canReset || !confirm('Delete every saved file and ledger entry from this browser?')) return;
+  setBusy(true);
+  await B.reset();
+  state.selected = null;
+  ['#saveOut', '#checkOut', '#attackOut', '#recOut'].forEach(s => { $(s).innerHTML = ''; });
+  $('#savePipe').innerHTML = '';
+  $('#caseId').dataset.touched = '';
+  await refresh();
+  setBusy(false);
+  log('Vault reset.', '');
+}
+
+/* -------------------------------------------------------------- mode switch */
+function clearOutputs() {
+  ['#saveOut', '#checkOut', '#attackOut', '#recOut'].forEach(s => { $(s).innerHTML = ''; });
+  $('#savePipe').innerHTML = '';
+  $('#caseId').dataset.touched = '';
+  state.selected = null;
+}
+async function useSim() {
+  await Sim.init(); B = Sim; state.mode = 'sim'; state.acct = 'officerA'; clearOutputs();
+  await refresh();
+  log(persistent ? 'Simulated vault ready. Records are kept in this browser between visits.' : 'Simulated vault ready. Browser storage is unavailable, so records last only until this page is closed.', 'ok');
+}
+async function useLive(status) {
+  await Live.init(status); B = Live; state.mode = 'live'; state.acct = 'officerA'; clearOutputs();
+  await refresh();
+  log('Live mode connected. Ledger: ' + status.chain.kind + (status.demo ? ' (demo)' : '') + '. IPFS ' + status.ipfs.version + '.', 'ok');
+}
+async function tryLive(announce) {
+  try {
+    const st = await Live.probe();
+    if (!st.ready) {
+      $('#modeInfo').innerHTML = '<b>Live mode is not ready.</b> ' + esc(!st.ipfs.ok ? 'The IPFS node is not running. Start it with: ipfs daemon' : (st.error || 'The ledger is not reachable. Check that the Fabric network is up.'));
+      return false;
+    }
+    await useLive(st);
+    return true;
+  } catch (e) {
+    if (announce) $('#modeInfo').innerHTML = '<b>Live mode is off.</b> Start the server in PowerShell with <code>node server.js</code>, then press the button again.';
+    return false;
+  }
+}
+
+async function init() {
+  $('#acct').addEventListener('change', e => { state.acct = e.target.value; refresh(); log('Now acting as ' + cur().name + '.', ''); });
+  $('#recSel').addEventListener('change', e => { state.selected = e.target.value ? +e.target.value : null; renderRecords(); });
+  $('#caseId').addEventListener('input', e => { e.target.dataset.touched = '1'; });
+  $('#fileSave').addEventListener('change', e => {
+    const f = e.target.files[0];
+    $('#saveInfo').textContent = f ? f.name + ', ' + fmtSize(f.size) : 'No file chosen. Files up to about 50 MB work well.';
+  });
+  $('#btnSave').addEventListener('click', doSave);
+  $('#btnCheckFile').addEventListener('click', checkFile);
+  $('#btnCheckVault').addEventListener('click', checkVault);
+  $('#btnMakeTamper').addEventListener('click', makeTamper);
+  $('#btnReset').addEventListener('click', resetAll);
+  $('#btnExport').addEventListener('click', () => download('evidence-ledger.json', JSON.stringify(state.ledger.raw || state.ledger.blocks, null, 2), 'application/json'));
+  $('#attackBtns').addEventListener('click', e => { const b = e.target.closest('button[data-attack]'); if (b) runAttack(b.dataset.attack); });
+  $('#records').addEventListener('click', e => {
+    const btn = e.target.closest('button[data-act]');
+    const tag = e.target.closest('.tag');
+    if (!tag) return;
+    const id = +tag.dataset.id;
+    state.selected = id;
+    if (!btn || btn.dataset.act === 'pick') { renderRecords(); return; }
+    if (btn.dataset.act === 'transfer') transfer(id);
+    if (btn.dataset.act === 'get') getOriginal(id);
+  });
+  $('#modeSim').addEventListener('click', async () => { if (B.id !== 'sim') { setBusy(true); await useSim(); setBusy(false); } });
+  $('#modeLive').addEventListener('click', async () => { setBusy(true); await tryLive(true); setBusy(false); });
+
+  if (!(typeof crypto !== 'undefined' && crypto.subtle)) log('Using the built in SHA 256 routine because the Web Crypto API is not available here.', '');
+  const startLive = location.protocol.indexOf('http') === 0 && await tryLive(false);
+  if (!startLive) {
+    await useSim();
+    if (location.protocol.indexOf('http') !== 0) $('#modeInfo').innerHTML = 'Live mode needs the server. Run <code>node server.js</code>, then press the Live button.';
+  }
+}
+init();
+</script>
+</body>
+</html>

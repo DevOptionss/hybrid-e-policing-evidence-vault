@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software or its measurements, please cite it as below."
+title: "Evidence Vault: a hybrid e-policing architecture for preserving and authenticating digital forensic evidence"
+type: software
+authors:
+  - family-names: Phillipus
+    given-names: Agas
+    affiliation: "Namibia University of Science and Technology"
+version: 1.2.0
+date-released: 2026-10-21
+license: MIT
+abstract: >-
+  A laboratory prototype that stores multimedia, CCTV and IoT sensor evidence so that tampering is
+  detectable and the chain of custody can be verified independently. It combines a Hyperledger Fabric
+  ledger, IPFS storage on two tiers, SHA-256 hashing, Merkle trees and chaos map encryption.
+keywords:
+  - digital forensics
+  - chain of custody
+  - Hyperledger Fabric
+  - IPFS
+  - blockchain
+  - evidence integrity

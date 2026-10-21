@@ -1,0 +1,25 @@
+{
+  "name": "evidence-vault",
+  "version": "1.2.0",
+  "description": "Evidence Vault server for the hybrid e-policing prototype (Fabric and IPFS)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node server.js --demo",
+    "test": "node tests/objective3-tests.js",
+    "bench": "node tests/benchmark.js",
+    "test4": "node tests/objective4-tests.js",
+    "test5": "node tests/objective5-tests.js",
+    "trial": "node tests/detection-trial.js",
+    "bench4": "node tests/benchmark4.js",
+    "cipher": "node tests/cipher-evaluation.js",
+    "large": "node tests/large-file-test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.0",
+    "@hyperledger/fabric-gateway": "^1.7.0"
+  }
+}
