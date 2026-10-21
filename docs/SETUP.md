@@ -1,5 +1,7 @@
 # Setup guide
 
+Install the software first by following [INSTALL.md](INSTALL.md), then come back here.
+
 There are two ways to run the project.
 
 | Route | What you get | Time | You need |
@@ -13,15 +15,9 @@ The project was developed and tested on Windows 11 with WSL 2. Route A was also 
 
 ## Route A: demo mode
 
-### A1. Install the tools
+### A1. Check the tools
 
-| Tool | Version used | Where to get it |
-|---|---|---|
-| Node.js | 20 or newer (24 on Windows, 22 on Linux) | https://nodejs.org |
-| Kubo (the IPFS node) | 0.43.1 | https://docs.ipfs.tech/install/command-line/ |
-| FFmpeg | any recent version | Windows: `winget install Gyan.FFmpeg`. Linux: `sudo apt install ffmpeg`. FFmpeg is needed by the Objective 4 tests and for video time windows |
-
-Check them in a new terminal:
+Follow [INSTALL.md](INSTALL.md) for Git, Node.js, Kubo and FFmpeg, then check them in a new terminal:
 
 ```
 node --version
@@ -89,9 +85,9 @@ All should pass. See `docs/TESTING.md` for what each one checks and for the sett
 | Item | Recommendation |
 |---|---|
 | Computer | Windows 11 with at least 12 GB of memory and 15 GB of free disk space. Hardware virtualisation must be switched on in the BIOS |
-| WSL 2 with Ubuntu | `wsl --install` in an administrator PowerShell, then restart |
-| Docker Desktop | With the WSL 2 engine and Ubuntu integration switched on |
-| Node.js, Kubo, FFmpeg | As in route A, installed on Windows |
+| WSL 2 with Ubuntu | Installed as in [INSTALL.md](INSTALL.md) |
+| Docker Desktop | Installed as in [INSTALL.md](INSTALL.md), with the WSL 2 engine and Ubuntu integration switched on |
+| Node.js, Kubo, FFmpeg | As in route A, installed on Windows (see [INSTALL.md](INSTALL.md)) |
 
 ### B2. Limit the memory WSL can take
 
